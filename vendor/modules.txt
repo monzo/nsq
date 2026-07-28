@@ -1,0 +1,39 @@
+# github.com/BurntSushi/toml v0.0.0-20130929175405-2dff11163ee6
+## explicit
+github.com/BurntSushi/toml
+# github.com/bitly/go-hostpool v0.0.0-20171023180738-a3a6125de932
+## explicit
+github.com/bitly/go-hostpool
+# github.com/bitly/timer_metrics v0.0.0-20150203034119-afad1794bb13
+## explicit
+github.com/bitly/timer_metrics
+# github.com/blang/semver v2.1.0+incompatible
+## explicit
+github.com/blang/semver
+# github.com/bmizerany/perks v0.0.0-20140429223840-6cb9d9d72930
+## explicit
+github.com/bmizerany/perks/quantile
+# github.com/golang/snappy v0.0.0-20160529050041-d9eb7a3d35ec
+## explicit
+github.com/golang/snappy
+# github.com/judwhite/go-svc v1.0.0
+## explicit
+github.com/judwhite/go-svc/svc
+# github.com/julienschmidt/httprouter v1.1.1-0.20150708215400-6aacfd5ab513
+## explicit
+github.com/julienschmidt/httprouter
+# github.com/mreiferson/go-options v0.0.0-20161229190002-77551d20752b
+## explicit
+github.com/mreiferson/go-options
+# github.com/nsqio/go-diskqueue v0.0.0-20170827071139-0681a1afee12
+## explicit
+github.com/nsqio/go-diskqueue
+# github.com/nsqio/go-nsq v1.0.7-0.20161229185821-a53d495e8142
+## explicit
+github.com/nsqio/go-nsq
+# github.com/stretchr/testify v1.8.4
+## explicit; go 1.20
+# golang.org/x/sys v0.0.0-20171028101351-661970f62f58
+## explicit
+golang.org/x/sys/windows
+golang.org/x/sys/windows/svc
