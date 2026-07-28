@@ -10,7 +10,9 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Superseded PR pushes are safe to cancel, but a master run may be midway
+  # through publishing a release, so let those finish.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   test:
@@ -50,3 +52,62 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: "0"
         run: go build -o /dev/null ./apps/...
+
+  # Master only: package the release tarballs, attach them to the run, and cut a
+  # GitHub release the first time a given version const reaches master.
+  dist:
+    needs: [ test, build ]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # Produces dist/nsq-<version>.linux-<arch>.go<x.y.z>.tar.gz, each holding
+      # bin/ so it unpacks over a prefix with `tar --strip-components=1`.
+      # Tests and the docker image are skipped: the jobs above already covered
+      # the former, and nothing here consumes the latter.
+      - name: package tarballs
+        env:
+          DIST_OS: linux
+          DIST_ARCH: amd64 arm64
+          DIST_TESTS: "0"
+          DIST_DOCKER: "0"
+        run: ./dist.sh
+
+      - name: read version
+        id: meta
+        run: |
+          version="$(awk '/const Binary/ {print $NF}' internal/version/binary.go | tr -d '"')"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nsq-${{ steps.meta.outputs.version }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 90
+
+      # Idempotent, so merging to master without touching
+      # internal/version/binary.go leaves the existing release alone. Bump the
+      # version const to cut a new one.
+      - name: publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG already exists, leaving it untouched"
+            exit 0
+          fi
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --title "$TAG" \
+            --notes "Built from ${GITHUB_SHA} by the ${GITHUB_WORKFLOW} workflow." \
+            dist/*.tar.gz
