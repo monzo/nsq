@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, dev ]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # go-version-file keeps the toolchain in step with the go directive in
+      # go.mod, so bumping one place is enough.
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # Dependencies come from the committed vendor/ directory, so there is
+      # nothing to fetch first. test.sh runs the suite twice (plain, then
+      # -race) and then builds every app and bench binary.
+      - run: ./test.sh
+
+  # The test job above already covers linux/amd64; this checks the remaining
+  # linux architectures still compile, in particular 32-bit.
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        goarch: [ amd64, 386, arm64 ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: build linux/${{ matrix.goarch }}
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+        run: go build -o /dev/null ./apps/...
