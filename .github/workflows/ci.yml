@@ -29,14 +29,14 @@ jobs:
       # -race) and then builds every app and bench binary.
       - run: ./test.sh
 
-  # The test job above already covers linux/amd64; this checks the remaining
-  # linux architectures still compile, in particular 32-bit.
+  # The test job above runs on linux/amd64; this confirms both released
+  # architectures still compile.
   build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        goarch: [ amd64, 386, arm64 ]
+        goarch: [ amd64, arm64 ]
     steps:
       - uses: actions/checkout@v4
 
