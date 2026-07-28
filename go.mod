@@ -1,6 +1,6 @@
 module github.com/nsqio/nsq
 
-go 1.26.5
+go 1.26
 
 require (
 	github.com/BurntSushi/toml v0.0.0-20130929175405-2dff11163ee6
